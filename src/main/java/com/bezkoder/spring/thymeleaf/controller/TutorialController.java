@@ -1,12 +1,14 @@
 package com.bezkoder.spring.thymeleaf.controller;
 
-import java.util.ArrayList;
 import java.util.List;
 
+import com.bezkoder.spring.thymeleaf.service.TutorialService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.repository.query.Param;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -15,24 +17,26 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import com.bezkoder.spring.thymeleaf.entity.Tutorial;
 import com.bezkoder.spring.thymeleaf.repository.TutorialRepository;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
 @Controller
 public class TutorialController {
 
   @Autowired
   private TutorialRepository tutorialRepository;
 
+  @Autowired
+  private TutorialService tutorialService;
+
   @GetMapping("/tutorials")
   public String getAll(Model model, @Param("keyword") String keyword) {
     try {
-      List<Tutorial> tutorials = new ArrayList<Tutorial>();
-
-      if (keyword == null) {
-        tutorialRepository.findAll().forEach(tutorials::add);
-      } else {
-        tutorialRepository.findByTitleContainingIgnoreCase(keyword).forEach(tutorials::add);
+      if (keyword != null) {
         model.addAttribute("keyword", keyword);
       }
 
+      List<Tutorial> tutorials = tutorialService.findTutorials(keyword);
       model.addAttribute("tutorials", tutorials);
     } catch (Exception e) {
       model.addAttribute("message", e.getMessage());
@@ -48,6 +52,20 @@ public class TutorialController {
 
     model.addAttribute("tutorial", tutorial);
     model.addAttribute("pageTitle", "Create new Tutorial");
+
+    return "tutorial_form";
+  }
+
+  @GetMapping("/tutorials/new2")
+  public String addTutorial(Model model, HttpServletRequest request, HttpServletResponse response) {
+    Tutorial tutorial = new Tutorial();
+    tutorial.setPublished(true);
+
+    model.addAttribute("tutorial", tutorial);
+    model.addAttribute("pageTitle", "Create new Tutorial");
+
+    // Set Http Status Code to Response
+    response.setStatus(HttpStatus.ACCEPTED.value());
 
     return "tutorial_form";
   }
@@ -83,6 +101,19 @@ public class TutorialController {
 
   @GetMapping("/tutorials/delete/{id}")
   public String deleteTutorial(@PathVariable("id") Integer id, Model model, RedirectAttributes redirectAttributes) {
+    try {
+      tutorialRepository.deleteById(id);
+
+      redirectAttributes.addFlashAttribute("message", "The Tutorial with id=" + id + " has been deleted successfully!");
+    } catch (Exception e) {
+      redirectAttributes.addFlashAttribute("message", e.getMessage());
+    }
+
+    return "redirect:/tutorials";
+  }
+
+  @DeleteMapping("/tutorials/{id}")
+  public String deleteTutorial2(@PathVariable("id") Integer id, Model model, RedirectAttributes redirectAttributes) {
     try {
       tutorialRepository.deleteById(id);
 
