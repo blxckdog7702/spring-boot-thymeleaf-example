@@ -2,6 +2,7 @@ package com.bezkoder.spring.thymeleaf.controller;
 
 import java.util.List;
 
+import com.bezkoder.spring.thymeleaf.dto.TutorialDto;
 import com.bezkoder.spring.thymeleaf.service.TutorialService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.repository.query.Param;
@@ -71,9 +72,10 @@ public class TutorialController {
   }
 
   @PostMapping("/tutorials/save")
-  public String saveTutorial(Tutorial tutorial, RedirectAttributes redirectAttributes) {
+  public String saveTutorial(TutorialDto dto, RedirectAttributes redirectAttributes) {
     try {
-      tutorialRepository.save(tutorial);
+      Tutorial entity = Tutorial.of(dto);
+      tutorialRepository.save(entity);
 
       redirectAttributes.addFlashAttribute("message", "The Tutorial has been saved successfully!");
     } catch (Exception e) {

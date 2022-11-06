@@ -1,5 +1,7 @@
 package com.bezkoder.spring.thymeleaf.entity;
 
+import com.bezkoder.spring.thymeleaf.dto.TutorialDto;
+
 import javax.persistence.*;
 
 @Entity
@@ -31,6 +33,10 @@ public class Tutorial {
     this.description = description;
     this.level = level;
     this.published = published;
+  }
+
+  public static Tutorial of(TutorialDto dto) {
+    return new Tutorial(dto.getTitle(), dto.getDescription(), dto.getLevel(), dto.isPublished());
   }
 
   public Integer getId() {
